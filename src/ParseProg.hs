@@ -8,6 +8,7 @@ import Basic
 import Token
 import DerivedPrimitives
 import Control.Applicative
+import ParseUtility
 
 --
 
@@ -28,13 +29,13 @@ parseScDefn = do v <- parseVar
 parseExpr :: Parser (Expr Name)
 parseExpr =
             do symbol "let" -- local definitions
-               ds <- parseDefs
+               ds <- parseSemiColonList parseDef
                symbol "in"
                e <- parseExpr
                return $ ELet NonRecursive ds e
         <|>
             do symbol "let" -- local recdefinitions
-               ds <- parseDefs
+               ds <- parseSemiColonList parseDef
                symbol "in"
                e <- parseExpr
                return $ ELet Recursive ds e
@@ -57,12 +58,6 @@ parseExpr =
             do e <- parseExpr -- infix binary application
                a <- parseAExpr
                return $ EAp e a
-
-parseDefs :: Parser [Def Name]
-parseDefs = do d <- parseDef
-               do symbol ";"
-                  ds <- parseDefs
-                  return (d:ds)
                   <|> return [d]
 
 parseAExpr :: Parser (Expr Name)
