@@ -1,4 +1,4 @@
-*.cabal
+/CoreParser.cabal
 dist
 dist-*
 cabal-dev
