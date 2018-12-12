@@ -6,6 +6,7 @@ type Name = String -- for string name
 type Def a = (a, Expr a) -- for let and letrec
 type Alter a = (Int, [a], Expr a) -- for case
 data IsRec = NonRecursive | Recursive deriving (Show, Eq) -- for let and letrec
+type CoreExpr = Expr Name
 
 data Expr a =
   EVar Name

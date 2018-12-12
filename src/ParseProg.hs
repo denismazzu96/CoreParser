@@ -33,7 +33,7 @@ parseScDefn = do
 
 ------------------------------------------------------------------- Expressions
 
-parseLocalDefinition :: IsRec -> Parser (Expr Name)
+parseLocalDefinition :: IsRec -> Parser (CoreExpr)
 parseLocalDefinition mode = do
   symbol "let"
   ds <- parseSemiColonList parseDef
@@ -41,7 +41,7 @@ parseLocalDefinition mode = do
   e <- parseExpr
   return $ ELet mode ds e
 
-parseCase :: Parser (Expr Name)
+parseCase :: Parser (CoreExpr)
 parseCase = do
   symbol "case"
   e <- parseExpr
@@ -49,7 +49,7 @@ parseCase = do
   as <- many parseAlt
   return $ ECase e as
 
-parseLambda :: Parser (Expr Name)
+parseLambda :: Parser (CoreExpr)
 parseLambda = do
   symbol "\\"
   vs <- many parseVar
@@ -57,39 +57,39 @@ parseLambda = do
   e <- parseExpr
   return $ ELam vs e
 
-parseAtomic :: Parser (Expr Name)
+parseAtomic :: Parser (CoreExpr)
 parseAtomic = do
   a <- parseAExpr
   return a
 
-parseBinaryAp :: Parser (Expr Name)
-parseBinaryAp = do
-  e <- parseExpr
+parseAp :: Parser (CoreExpr)
+parseAp = do
   a <- parseAExpr
+  e <- parseExpr
   return $ EAp e a
 
-parseExpr :: Parser (Expr Name)
+parseExpr :: Parser (CoreExpr)
 parseExpr =
   parseLocalDefinition NonRecursive <|>
   parseLocalDefinition Recursive <|>
   parseCase <|>
   parseLambda <|>
-  parseAtomic <|>
-  parseBinaryAp
+  parseAp <|>
+  parseAtomic
 
 -------------------------------------------------------- Aritmetical Operations
 
-parseEVar :: Parser (Expr Name)
+parseEVar :: Parser (CoreExpr)
 parseEVar = do
   v <- parseVar
   return $ EVar v
 
-parseENum :: Parser (Expr Name)
+parseENum :: Parser (CoreExpr)
 parseENum = do
   n <- integer
   return $ ENum n
 
-parseConstructor :: Parser (Expr Name)
+parseConstructor :: Parser (CoreExpr)
 parseConstructor = do
   symbol "Pack"
   symbol "{"
@@ -99,14 +99,14 @@ parseConstructor = do
   symbol "}"
   return $ EConstr x y
 
-parsePar :: Parser (Expr Name)
+parsePar :: Parser (CoreExpr)
 parsePar = do
   symbol "("
   e <- parseExpr
   symbol ")"
   return e
 
-parseAExpr :: Parser (Expr Name)
+parseAExpr :: Parser (CoreExpr)
 parseAExpr = parseEVar <|> parseENum <|> parseConstructor <|> parsePar
 
 ------------------------------------------------------------------- Definitions
