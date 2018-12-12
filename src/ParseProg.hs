@@ -13,20 +13,23 @@ import ParseUtility
 ---------------------------------------------------------------------- Programs
 
 parseProg :: Parser (Program Name)
-parseProg = do p <- parseScDefn
-               do symbol ";"
-                  ps <- parseProg
-                  return (p:ps)
-                  <|> return [p]
+parseProg = do
+  p <- parseScDefn
+  do
+    symbol ";"
+    ps <- parseProg
+    return (p:ps)
+    <|> return [p]
 
 -------------------------------------------------------------- Supercombinators
 
 parseScDefn :: Parser (ScDefn Name)
-parseScDefn = do v <- parseVar
-                 pf <- many parseVar
-                 symbol "="
-                 body <- parseExpr
-                 return (v, pf, body)
+parseScDefn = do
+  v <- parseVar
+  pf <- many parseVar
+  symbol "="
+  body <- parseExpr
+  return (v, pf, body)
 
 ------------------------------------------------------------------- Expressions
 
