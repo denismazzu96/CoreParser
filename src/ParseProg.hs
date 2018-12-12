@@ -9,9 +9,8 @@ import Token
 import DerivedPrimitives
 import Control.Applicative
 import ParseUtility
-import ParseExpr
 
---
+---------------------------------------------------------------------- Programs
 
 parseProg :: Parser (Program Name)
 parseProg = do p <- parseScDefn
@@ -20,6 +19,8 @@ parseProg = do p <- parseScDefn
                   return (p:ps)
                   <|> return [p]
 
+-------------------------------------------------------------- Supercombinators
+
 parseScDefn :: Parser (ScDefn Name)
 parseScDefn = do v <- parseVar
                  pf <- many parseVar
@@ -27,43 +28,105 @@ parseScDefn = do v <- parseVar
                  body <- parseExpr
                  return (v, pf, body)
 
-parseAExpr :: Parser (Expr Name)
-parseAExpr = do v <- parseVar -- EVar
-                return $ EVar v
-         <|> do n <- integer -- ENum
-                return $ ENum n
-         <|> do c <- parseConstructor -- EConstr
-                return c
-         <|> do symbol "(" -- parenthesis
-                e <- parseExpr
-                symbol ")"
-                return e
+------------------------------------------------------------------- Expressions
+
+parseLocalDefinition :: IsRec -> Parser (Expr Name)
+parseLocalDefinition mode = do
+  symbol "let"
+  ds <- parseSemiColonList parseDef
+  symbol "in"
+  e <- parseExpr
+  return $ ELet mode ds e
+
+parseCase :: Parser (Expr Name)
+parseCase = do
+  symbol "case"
+  e <- parseExpr
+  symbol "of"
+  as <- many parseAlt
+  return $ ECase e as
+
+parseLambda :: Parser (Expr Name)
+parseLambda = do
+  symbol "\\"
+  vs <- many parseVar
+  symbol "."
+  e <- parseExpr
+  return $ ELam vs e
+
+parseAtomic :: Parser (Expr Name)
+parseAtomic = do
+  a <- parseAExpr
+  return a
+
+parseBinaryAp :: Parser (Expr Name)
+parseBinaryAp = do
+  e <- parseExpr
+  a <- parseAExpr
+  return $ EAp e a
+
+parseExpr :: Parser (Expr Name)
+parseExpr =
+  parseLocalDefinition NonRecursive <|>
+  parseLocalDefinition Recursive <|>
+  parseCase <|>
+  parseLambda <|>
+  parseAtomic <|>
+  parseBinaryAp
+
+-------------------------------------------------------- Aritmetical Operations
+
+parseEVar :: Parser (Expr Name)
+parseEVar = do
+  v <- parseVar
+  return $ EVar v
+
+parseENum :: Parser (Expr Name)
+parseENum = do
+  n <- integer
+  return $ ENum n
 
 parseConstructor :: Parser (Expr Name)
-parseConstructor = do symbol "Pack" -- var can't start with capital letter
-                      symbol "{"
-                      x <- natural
-                      symbol ","
-                      y <- natural
-                      symbol "}"
-                      return $ EConstr x y
+parseConstructor = do
+  symbol "Pack"
+  symbol "{"
+  x <- natural
+  symbol ","
+  y <- natural
+  symbol "}"
+  return $ EConstr x y
 
+parsePar :: Parser (Expr Name)
+parsePar = do
+  symbol "("
+  e <- parseExpr
+  symbol ")"
+  return e
+
+parseAExpr :: Parser (Expr Name)
+parseAExpr = parseEVar <|> parseENum <|> parseConstructor <|> parsePar
+
+------------------------------------------------------------------- Definitions
 parseDef :: Parser (Def Name)
-parseDef = do v <- parseVar
-              symbol "="
-              e <- parseExpr
-              return (v, e)
+parseDef = do
+  v <- parseVar
+  symbol "="
+  e <- parseExpr
+  return (v, e)
+
+-------------------------------------------------------------------------- Vars
 
 parseVar :: Parser (Name)
 parseVar = identifier
 
+------------------------------------------------------------------ Alternatives
+
 parseAlt :: Parser (Alter Name)
-parseAlt = do symbol "<"
-              n <- natural
-              symbol ">"
-              vs <- many parseVar
-              symbol "->"
-              e <- parseExpr
-              return (n, vs, e)
-
-
+parseAlt = do
+  symbol "<"
+  n <- natural
+  symbol ">"
+  vs <- many parseVar
+  symbol "->"
+  e <- parseExpr
+  return (n, vs, e)
