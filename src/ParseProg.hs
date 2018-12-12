@@ -9,6 +9,7 @@ import Token
 import DerivedPrimitives
 import Control.Applicative
 import ParseUtility
+import ParseExpr
 
 --
 
@@ -25,40 +26,6 @@ parseScDefn = do v <- parseVar
                  symbol "="
                  body <- parseExpr
                  return (v, pf, body)
-
-parseExpr :: Parser (Expr Name)
-parseExpr =
-            do symbol "let" -- local definitions
-               ds <- parseSemiColonList parseDef
-               symbol "in"
-               e <- parseExpr
-               return $ ELet NonRecursive ds e
-        <|>
-            do symbol "let" -- local recdefinitions
-               ds <- parseSemiColonList parseDef
-               symbol "in"
-               e <- parseExpr
-               return $ ELet Recursive ds e
-        <|>
-            do symbol "case" -- case expr
-               e <- parseExpr
-               symbol "of"
-               as <- many parseAlt
-               return $ ECase e as
-        <|>
-            do symbol "\\" -- lambda abstraction
-               vs <- many parseVar
-               symbol "."
-               e <- parseExpr
-               return $ ELam vs e
-        <|>
-            do a <- parseAExpr -- atomic expr
-               return a
-        <|>
-            do e <- parseExpr -- infix binary application
-               a <- parseAExpr
-               return $ EAp e a
-                  <|> return [d]
 
 parseAExpr :: Parser (Expr Name)
 parseAExpr = do v <- parseVar -- EVar
