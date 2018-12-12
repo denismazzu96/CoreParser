@@ -18,3 +18,12 @@ parseList p s = do first <- p
 
 parseSemiColonList :: Parser a -> Parser [a]
 parseSemiColonList p = parseList p ";"
+
+--
+
+bindersOf :: [(a, b)] -> [a]
+bindersOf defns = [name | (name, _) <- defns]
+
+-- right hand sides of
+rhssOf :: [(a, b)] -> [b]
+rhssOf defns = [rhs | (_, rhs) <- defns]
