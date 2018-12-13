@@ -15,42 +15,51 @@ import ParseProg
 --
 
 tests = [
-  c0
+  c0,
+  c1,
+  c2
   ]
 
 c0 = assertT "[Precedence] Application" [([("f", [], EAp (EAp (EVar "f") (EVar "g")) (EVar "y"))], "")] (parse parseProg "f = f g y")
+c1 = assertT "[Precedence] Arithmetical operations" [([("f", [], e1)], "")] (parse parseProg "f = 0+1*2+3")
+c2 = assertT "[Precedence] Boolean operations" [([("f", [], e2)], "")] (parse parseProg "f = 0&0|1&0")
 
-p = "f = 3;\ng x y = let z = x in z;\nh x = case (let y = x in y) of\n<1> -> 2\n<2> -> 5"
--- f = 3;
--- g x y = let z = x in z;
--- h x = case (let y = x in y) of
--- <1> -> 2
--- <2> -> 5
-out = [(three, "")]
-three = [
-  ("f", [], ENum 3),
-  (
-    "g",
-    ["x", "y"],
-    ELet
-      NonRecursive
-      [("z", EVar "x")]
-      (EVar "z")
-  ),
-  (
-    "h",
-    ["x"],
-    ECase
-      (
-        ELet
-          NonRecursive
-          [("y", EVar "x")]
-          (EVar "y")
+e1 =
+  EAp -- (+0)(+((*1)2)3)
+    (EAp -- +0
+      (EVar "+")
+      (ENum 0)
+    )
+    (EAp -- +((*1)2)3
+      (EAp -- +(1*2)
+        (EVar "+")
+        (EAp -- (*1)2
+          (EAp -- *1
+            (EVar "*")
+            (ENum 1)
+          )
+          (ENum 2)
+        )
       )
-      [
-        (1, [], ENum 2),
-        (2, [], ENum 5)
-      ]
-  )
-  ]
+      (ENum 3)
+    )
 
+e2 =
+  EAp
+    (EAp
+      (EVar "|")
+      (EAp
+        (EAp
+          (EVar "&")
+          (ENum 0)
+        )
+        (ENum 0)
+      )
+    )
+    (EAp
+      (EAp
+        (EVar "&")
+        (ENum 1)
+      )
+      (ENum 0)
+    )
