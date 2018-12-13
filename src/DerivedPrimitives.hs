@@ -6,6 +6,7 @@ import Control.Applicative
 import Data.Char
 import Parser
 import Basic
+import Language
 
 --
 
@@ -41,9 +42,10 @@ string (x:xs) = do char x
                    return (x:xs)
 
 ident :: Parser String
-ident = do x <- lower
-           xs <- many alphanumPlus
-           return (x:xs)
+ident = do
+  x <- lower
+  xs <- many alphanumPlus
+  if any ((x:xs)==) keywords then empty else return (x:xs)
 
 nat :: Parser Int
 nat = do xs <- some digit
