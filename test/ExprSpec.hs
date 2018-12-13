@@ -18,4 +18,4 @@ tests = [
   c0
   ]
 
-c0 = assertT "[Expr] atomic aexpr" [(ENum 3, "abx")] (parse parseExpr "3 abx")
+c0 = assertT "[Expr] atomic aexpr" [(EAp (ENum 3) (EVar "abx"),"")] (parse parseAp "3 abx")

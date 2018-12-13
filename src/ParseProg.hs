@@ -69,7 +69,7 @@ parseExpr =
   parseCase <|>
   parseLambda
 
--------------------------------------------------------- Aritmetical Operations
+------------------------------------------------------- Aritmetical Expressions
 
 parseEVar :: Parser (CoreExpr)
 parseEVar = do
@@ -92,11 +92,7 @@ parseConstructor = do
   return $ EConstr x y
 
 parsePar :: Parser (CoreExpr)
-parsePar = do
-  symbol "("
-  e <- parseExpr
-  symbol ")"
-  return e
+parsePar = parseParenthesised parseExpr
 
 parseAExpr :: Parser (CoreExpr)
 parseAExpr = parseEVar <|> parseENum <|> parseConstructor <|> parsePar
@@ -126,3 +122,26 @@ parseAlt = do
   symbol "->"
   e <- parseExpr
   return (n, vs, e)
+
+------------------------------------------------------- Arithmetical Operations
+
+expr :: Parser Int
+expr = do
+  t <- term
+  do
+    symbol "+"
+    e <- expr
+    return (t + e)
+    <|> return t
+
+term :: Parser Int
+term = do
+  f <- factor
+  do
+    symbol "*"
+    t <- term
+    return (f * t)
+    <|> return f
+
+factor :: Parser Int
+factor = parseParenthesised expr <|> natural

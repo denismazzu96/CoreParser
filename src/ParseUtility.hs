@@ -20,6 +20,13 @@ parseList p s = do first <- p
 parseSemiColonList :: Parser a -> Parser [a]
 parseSemiColonList p = parseList p ";"
 
+parseParenthesised :: Parser a -> Parser a
+parseParenthesised p = do
+  symbol "("
+  e <- p
+  symbol ")"
+  return e
+
 --
 
 bindersOf :: [(a, b)] -> [a]
