@@ -32,3 +32,6 @@ type CoreScDefn = ScDefn Name
 --
 keywords :: [String]
 keywords = ["let", "letrec", "case", "in", "of", "Pack"]
+
+relop :: [String]
+relop = ["<<", "<=", "==", "~=", ">=", ">>"]

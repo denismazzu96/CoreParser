@@ -57,17 +57,31 @@ parseLambda = do
   e <- parseExpr
   return $ ELam vs e
 
--- atomic expressions is an application with only one subAExp
-parseAp :: Parser (CoreExpr)
-parseAp = fmap (mkChain) (some parseAExpr)
-
 parseExpr :: Parser (CoreExpr)
 parseExpr =
-  parseAp <|>
   parseLocalDefinition NonRecursive <|>
   parseLocalDefinition Recursive <|>
   parseCase <|>
-  parseLambda
+  parseLambda <|>
+  parseExpr1
+
+parseExpr1 :: Parser (CoreExpr)
+parseExpr1 = parseBoolop parseExpr2 "|"
+
+parseExpr2 :: Parser (CoreExpr)
+parseExpr2 = parseBoolop parseExpr3 "&"
+
+parseExpr3 :: Parser (CoreExpr)
+parseExpr3 = parseRelop parseExpr4 relop
+
+parseExpr4 :: Parser (CoreExpr)
+parseExpr4 = parseBoolop parseExpr5 "+" <|> parseRelop parseExpr5 ["-"]
+
+parseExpr5 :: Parser (CoreExpr)
+parseExpr5 = parseBoolop parseExpr6 "*" <|> parseRelop parseExpr6 ["/"]
+
+parseExpr6 :: Parser (CoreExpr)
+parseExpr6 = fmap (mkChain) (some parseAExpr)
 
 ------------------------------------------------------- Aritmetical Expressions
 

@@ -32,6 +32,9 @@ integer = token int -- not accept string like "- 3" with space between number an
 symbol :: String -> Parser String
 symbol xs = token (string xs)
 
+symbols :: [String] -> Parser String
+symbols xs = token (strings xs)
+
 nats :: Parser [Int]
 nats = do symbol "["
           n <- natural

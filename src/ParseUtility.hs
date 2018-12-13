@@ -27,6 +27,26 @@ parseParenthesised p = do
   symbol ")"
   return e
 
+parseBoolop :: Parser CoreExpr -> String -> Parser CoreExpr
+parseBoolop pNext op = do
+  a <- pNext
+  do
+    symbol op
+    b <- parseBoolop pNext op
+    return $ EAp (EAp (EVar op) a) b
+    <|> return a
+
+parseRelop :: Parser CoreExpr -> [String] -> Parser CoreExpr
+parseRelop pNext ops = do
+  a <- pNext
+  do
+    op <- symbols ops
+    b <- pNext
+    return $ EAp (EAp (EVar op) a) b
+    <|> return a
+
+
+
 --
 
 bindersOf :: [(a, b)] -> [a]

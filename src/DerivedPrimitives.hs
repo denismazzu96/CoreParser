@@ -41,6 +41,10 @@ string (x:xs) = do char x
                    string xs
                    return (x:xs)
 
+strings :: [String] -> Parser String
+strings [] = empty
+strings (x:xs) = string x <|> strings xs
+
 ident :: Parser String
 ident = do
   x <- lower
