@@ -8,7 +8,7 @@ import AlterSpec
 import VarSpec
 import AExprSpec
 import ExprSpec
-
+import PrecedenceSpec
 import ProgramSpec
 
 main :: IO ()
@@ -25,4 +25,5 @@ main = do
         VarSpec.tests ++
         AExprSpec.tests ++
         ExprSpec.tests ++
+        PrecedenceSpec.tests ++
         ProgramSpec.tests
