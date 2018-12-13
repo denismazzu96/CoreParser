@@ -35,7 +35,7 @@ parseScDefn = do
 
 parseLocalDefinition :: IsRec -> Parser (CoreExpr)
 parseLocalDefinition mode = do
-  symbol "let"
+  symbol (if mode == NonRecursive then "let" else "letrec")
   ds <- parseSemiColonList parseDef
   symbol "in"
   e <- parseExpr
@@ -57,25 +57,17 @@ parseLambda = do
   e <- parseExpr
   return $ ELam vs e
 
-parseAtomic :: Parser (CoreExpr)
-parseAtomic = do
-  a <- parseAExpr
-  return a
-
+-- atomic expressions is an application with only one subAExp
 parseAp :: Parser (CoreExpr)
-parseAp = do
-  a <- parseAExpr
-  e <- parseExpr
-  return $ EAp e a
+parseAp = fmap (mkChain) (some parseAExpr)
 
 parseExpr :: Parser (CoreExpr)
 parseExpr =
+  parseAp <|>
   parseLocalDefinition NonRecursive <|>
   parseLocalDefinition Recursive <|>
   parseCase <|>
-  parseLambda <|>
-  parseAp <|>
-  parseAtomic
+  parseLambda
 
 -------------------------------------------------------- Aritmetical Operations
 
@@ -110,6 +102,7 @@ parseAExpr :: Parser (CoreExpr)
 parseAExpr = parseEVar <|> parseENum <|> parseConstructor <|> parsePar
 
 ------------------------------------------------------------------- Definitions
+
 parseDef :: Parser (Def Name)
 parseDef = do
   v <- parseVar
